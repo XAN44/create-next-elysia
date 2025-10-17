@@ -1,6 +1,6 @@
 {
   "name": "create-next-elysia",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "CLI tool to scaffold Next.js + Elysia.js fullstack projects",
   "type": "module",
   "bin": {
