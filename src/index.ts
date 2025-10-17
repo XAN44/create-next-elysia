@@ -101,7 +101,7 @@ async function main() {
       const rootProcess = spawn({
         cmd: [cmd, "install"],
         cwd: projectPath,
-        stdio: "inherit",
+        stdio: ["pipe", "inherit", "inherit"],
       });
 
       const rootExit = await rootProcess.exited;
@@ -124,7 +124,7 @@ async function main() {
       const backendProcess = spawn({
         cmd: [cmd, "install"],
         cwd: backendPath,
-        stdio: "inherit",
+        stdio: ["pipe", "inherit", "inherit"],
       });
 
       const backendExit = await backendProcess.exited;
@@ -149,7 +149,7 @@ async function main() {
       const frontendProcess = spawn({
         cmd: [cmd, "install"],
         cwd: frontendPath,
-        stdio: "inherit",
+        stdio: ["pipe", "inherit", "inherit"],
       });
 
       const frontendExit = await frontendProcess.exited;
