@@ -93,11 +93,31 @@ async function main() {
     // Install dependencies
     console.log(`📚 Installing dependencies with ${packageManager}...\n`);
 
+    const cmd = packageManager === "npm" ? "npm" : packageManager;
+
+    // Install root dependencies
+    console.log("📦 Installing root dependencies...");
+    try {
+      const rootProcess = spawn({
+        cmd: [cmd, "install"],
+        cwd: projectPath,
+        stdio: "inherit",
+      });
+
+      const rootExit = await rootProcess.exited;
+      if (rootExit !== 0) {
+        console.warn("⚠️  Warning: Root install had issues, continuing...");
+      } else {
+        console.log("✅ Root dependencies installed!\n");
+      }
+    } catch (error) {
+      console.warn("⚠️  Warning: Could not install root dependencies");
+    }
+
     // Install back-end dependencies
     console.log("📦 Installing backend dependencies...");
     try {
       const backendPath = path.join(projectPath, "back-end/app");
-      let cmd = packageManager === "npm" ? "npm" : packageManager;
 
       const backendProcess = spawn({
         cmd: [cmd, "install"],
@@ -119,7 +139,6 @@ async function main() {
     console.log("📦 Installing frontend dependencies...");
     try {
       const frontendPath = path.join(projectPath, "front-end/my-app");
-      let cmd = packageManager === "npm" ? "npm" : packageManager;
 
       const frontendProcess = spawn({
         cmd: [cmd, "install"],
