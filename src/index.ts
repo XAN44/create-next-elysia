@@ -106,12 +106,14 @@ async function main() {
 
       const rootExit = await rootProcess.exited;
       if (rootExit !== 0) {
-        console.warn("⚠️  Warning: Root install had issues, continuing...");
+        console.error("❌ Root install failed. Please run manually:");
+        console.error(`   cd ${projectName} && ${cmd} install`);
       } else {
         console.log("✅ Root dependencies installed!\n");
       }
     } catch (error) {
-      console.warn("⚠️  Warning: Could not install root dependencies");
+      console.error("❌ Could not install root dependencies:", error);
+      console.log(`Please run manually: cd ${projectName} && ${cmd} install`);
     }
 
     // Install back-end dependencies
@@ -127,12 +129,16 @@ async function main() {
 
       const backendExit = await backendProcess.exited;
       if (backendExit !== 0) {
-        console.warn("⚠️  Warning: Backend install had issues, continuing...");
+        console.error("❌ Backend install failed. Please run manually:");
+        console.error(`   cd ${projectName}/back-end/app && ${cmd} install`);
       } else {
         console.log("✅ Backend dependencies installed!\n");
       }
     } catch (error) {
-      console.warn("⚠️  Warning: Could not install backend dependencies");
+      console.error("❌ Could not install backend dependencies:", error);
+      console.log(
+        `Please run manually: cd ${projectName}/back-end/app && ${cmd} install`
+      );
     }
 
     // Install front-end dependencies
@@ -148,12 +154,18 @@ async function main() {
 
       const frontendExit = await frontendProcess.exited;
       if (frontendExit !== 0) {
-        console.warn("⚠️  Warning: Frontend install had issues, continuing...");
+        console.error("❌ Frontend install failed. Please run manually:");
+        console.error(
+          `   cd ${projectName}/front-end/my-app && ${cmd} install`
+        );
       } else {
         console.log("✅ Frontend dependencies installed!\n");
       }
     } catch (error) {
-      console.warn("⚠️  Warning: Could not install frontend dependencies");
+      console.error("❌ Could not install frontend dependencies:", error);
+      console.log(
+        `Please run manually: cd ${projectName}/front-end/my-app && ${cmd} install`
+      );
     }
   }
 
