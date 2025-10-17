@@ -75,15 +75,20 @@ async function main() {
         "https://github.com/XAN44/next-elysia.git",
         projectPath,
       ],
-      stdio: ["pipe", "pipe", "pipe"],
+      stdio: ["pipe", "inherit", "inherit"],
     });
 
     const exitCode = await cloneProcess.exited;
     if (exitCode !== 0) {
-      throw new Error("Failed to clone repository");
+      throw new Error(`Git clone failed with exit code ${exitCode}`);
     }
   } catch (error) {
-    console.error("❌ Failed to clone repository:", error);
+    console.error("❌ Failed to clone repository");
+    console.error("Error details:", error);
+    console.error("\nMake sure:");
+    console.error("1. Git is installed (run: git --version)");
+    console.error("2. You have internet connection");
+    console.error("3. Repository URL is accessible");
     process.exit(1);
   }
 
