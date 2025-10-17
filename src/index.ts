@@ -198,6 +198,115 @@ async function main() {
   console.log(`   cd front-end/my-app && ${packageManager} run dev\n`);
 
   console.log(`📚 For more info, check the README.md in your project\n`);
+
+  // Ask if user wants to setup new repositories
+  const setupNewRepos = await question(
+    "🔄 Do you want to setup new GitHub repositories for this project? (yes/no) [default: no]: "
+  );
+
+  if (setupNewRepos.toLowerCase() === "yes") {
+    console.log("\n📦 Setting up new GitHub repositories...\n");
+
+    const rootRepo = await question(
+      "Enter root repository URL (e.g., https://github.com/username/my-project.git): "
+    );
+    const backendRepo = await question(
+      "Enter backend repository URL (e.g., https://github.com/username/my-project-backend.git): "
+    );
+    const frontendRepo = await question(
+      "Enter frontend repository URL (e.g., https://github.com/username/my-project-frontend.git): "
+    );
+
+    try {
+      // Update root repository
+      console.log("\n📝 Updating root repository...");
+      await spawn({
+        cmd: ["git", "remote", "remove", "origin"],
+        cwd: projectPath,
+      }).exited;
+
+      await spawn({
+        cmd: ["git", "remote", "add", "origin", rootRepo],
+        cwd: projectPath,
+      }).exited;
+
+      await spawn({
+        cmd: ["git", "push", "-u", "origin", "main"],
+        cwd: projectPath,
+        stdio: ["pipe", "inherit", "inherit"],
+      }).exited;
+
+      // Update backend repository
+      console.log("\n📝 Updating backend repository...");
+      const backendPath = path.join(projectPath, "back-end/app");
+
+      await spawn({
+        cmd: ["git", "remote", "remove", "origin"],
+        cwd: backendPath,
+      }).exited;
+
+      await spawn({
+        cmd: ["git", "remote", "add", "origin", backendRepo],
+        cwd: backendPath,
+      }).exited;
+
+      await spawn({
+        cmd: ["git", "push", "-u", "origin", "main"],
+        cwd: backendPath,
+        stdio: ["pipe", "inherit", "inherit"],
+      }).exited;
+
+      // Update frontend repository
+      console.log("\n📝 Updating frontend repository...");
+      const frontendPath = path.join(projectPath, "front-end/my-app");
+
+      await spawn({
+        cmd: ["git", "remote", "remove", "origin"],
+        cwd: frontendPath,
+      }).exited;
+
+      await spawn({
+        cmd: ["git", "remote", "add", "origin", frontendRepo],
+        cwd: frontendPath,
+      }).exited;
+
+      await spawn({
+        cmd: ["git", "push", "-u", "origin", "main"],
+        cwd: frontendPath,
+        stdio: ["pipe", "inherit", "inherit"],
+      }).exited;
+
+      // Update root submodules
+      console.log("\n📝 Updating root submodules...");
+      await spawn({
+        cmd: ["git", "add", "back-end/app", "front-end/my-app"],
+        cwd: projectPath,
+      }).exited;
+
+      await spawn({
+        cmd: ["git", "commit", "-m", "Update submodule remotes"],
+        cwd: projectPath,
+      }).exited;
+
+      await spawn({
+        cmd: ["git", "push", "origin", "main"],
+        cwd: projectPath,
+        stdio: ["pipe", "inherit", "inherit"],
+      }).exited;
+
+      console.log("\n✅ All repositories updated successfully!\n");
+      console.log("🔗 Your project repositories:");
+      console.log(`  Root: ${rootRepo}`);
+      console.log(`  Backend: ${backendRepo}`);
+      console.log(`  Frontend: ${frontendRepo}\n`);
+    } catch (error) {
+      console.error("❌ Error updating repositories:", error);
+      console.log(
+        "\nPlease update repositories manually or check the documentation."
+      );
+    }
+  }
+
   console.log(`🚀 Happy coding!\n`);
 
   rl.close();
