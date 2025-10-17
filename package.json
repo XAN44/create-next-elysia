@@ -1,0 +1,35 @@
+{
+  "name": "create-next-elysia",
+  "version": "1.0.0",
+  "description": "CLI tool to scaffold Next.js + Elysia.js fullstack projects",
+  "type": "module",
+  "bin": {
+    "create-next-elysia": "./dist/index.js"
+  },
+  "scripts": {
+    "dev": "bun src/index.ts",
+    "build": "bun build ./src/index.ts --outdir ./dist --target bun",
+    "prepublishOnly": "bun run build"
+  },
+  "keywords": [
+    "cli",
+    "scaffolding",
+    "next.js",
+    "elysia",
+    "fullstack"
+  ],
+  "author": "xxan444",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/XAN44/create-next-elysia.git"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "@types/node": "^20.10.6"
+  },
+  "engines": {
+    "bun": ">=1.0.0",
+    "node": ">=18.0.0"
+  }
+}
