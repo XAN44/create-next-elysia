@@ -221,20 +221,8 @@ async function main() {
       const backendPath = path.join(projectPath, "back-end/app");
       const frontendPath = path.join(projectPath, "front-end/my-app");
 
-      // Update root repository
-      console.log("\n📝 Updating root repository...");
-      await spawn({
-        cmd: ["git", "remote", "remove", "origin"],
-        cwd: projectPath,
-      }).exited;
-
-      await spawn({
-        cmd: ["git", "remote", "add", "origin", rootRepo],
-        cwd: projectPath,
-      }).exited;
-
       // Update backend repository
-      console.log("📝 Updating backend repository...");
+      console.log("\n📝 Updating backend repository...");
       await spawn({
         cmd: ["git", "remote", "remove", "origin"],
         cwd: backendPath,
@@ -257,7 +245,7 @@ async function main() {
         cwd: frontendPath,
       }).exited;
 
-      // Update .gitmodules file
+      // ✨ FIX: Update .gitmodules file with NEW URLs
       console.log("📝 Updating .gitmodules...");
       const gitmodulesPath = path.join(projectPath, ".gitmodules");
 
@@ -271,9 +259,30 @@ async function main() {
 
       fs.writeFileSync(gitmodulesPath, gitmodulesContent);
 
-      // Stage and commit all changes
+      // ✨ FIX: Sync submodule URLs from .gitmodules
+      console.log("🔄 Syncing submodule URLs...");
       await spawn({
-        cmd: ["git", "add", ".gitmodules", "back-end/app", "front-end/my-app"],
+        cmd: ["git", "submodule", "sync"],
+        cwd: projectPath,
+        stdio: ["pipe", "inherit", "inherit"],
+      }).exited;
+
+      // Update root repository
+      console.log("📝 Updating root repository...");
+      await spawn({
+        cmd: ["git", "remote", "remove", "origin"],
+        cwd: projectPath,
+      }).exited;
+
+      await spawn({
+        cmd: ["git", "remote", "add", "origin", rootRepo],
+        cwd: projectPath,
+      }).exited;
+
+      // Stage and commit all changes
+      console.log("💾 Committing changes...");
+      await spawn({
+        cmd: ["git", "add", ".gitmodules"],
         cwd: projectPath,
       }).exited;
 
@@ -287,8 +296,8 @@ async function main() {
         cwd: projectPath,
       }).exited;
 
-      // Push all repositories
-      console.log("📤 Pushing repositories...");
+      // Push submodules first
+      console.log("📤 Pushing submodules...");
 
       await spawn({
         cmd: ["git", "push", "-u", "origin", "main"],
@@ -302,6 +311,8 @@ async function main() {
         stdio: ["pipe", "inherit", "inherit"],
       }).exited;
 
+      // Push root repository
+      console.log("📤 Pushing root repository...");
       await spawn({
         cmd: ["git", "push", "-u", "origin", "main"],
         cwd: projectPath,
