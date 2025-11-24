@@ -221,32 +221,8 @@ async function main() {
       const backendPath = path.join(projectPath, "back-end/app");
       const frontendPath = path.join(projectPath, "front-end/my-app");
 
-      // Update backend repository
-      console.log("\n📝 Updating backend repository...");
-      await spawn({
-        cmd: ["git", "remote", "remove", "origin"],
-        cwd: backendPath,
-      }).exited;
-
-      await spawn({
-        cmd: ["git", "remote", "add", "origin", backendRepo],
-        cwd: backendPath,
-      }).exited;
-
-      // Update frontend repository
-      console.log("📝 Updating frontend repository...");
-      await spawn({
-        cmd: ["git", "remote", "remove", "origin"],
-        cwd: frontendPath,
-      }).exited;
-
-      await spawn({
-        cmd: ["git", "remote", "add", "origin", frontendRepo],
-        cwd: frontendPath,
-      }).exited;
-
-      // ✨ FIX: Update .gitmodules file with NEW URLs
-      console.log("📝 Updating .gitmodules...");
+      // ✨ Step 1: Update .gitmodules FIRST (before updating remotes)
+      console.log("\n📝 Updating .gitmodules file...");
       const gitmodulesPath = path.join(projectPath, ".gitmodules");
 
       let gitmodulesContent = `[submodule "back-end/app"]
@@ -258,66 +234,109 @@ async function main() {
 `;
 
       fs.writeFileSync(gitmodulesPath, gitmodulesContent);
+      console.log("✅ .gitmodules updated with new URLs");
 
-      // ✨ FIX: Sync submodule URLs from .gitmodules
-      console.log("🔄 Syncing submodule URLs...");
+      // ✨ Step 2: Sync submodule configurations
+      console.log("\n🔄 Syncing submodule configurations...");
       await spawn({
-        cmd: ["git", "submodule", "sync"],
+        cmd: ["git", "submodule", "sync", "--recursive"],
+        cwd: projectPath,
+        stdio: ["pipe", "inherit", "inherit"],
+      }).exited;
+      console.log("✅ Submodule configurations synced");
+
+      // ✨ Step 3: Update submodule remotes
+      console.log("\n📝 Updating backend remote...");
+      await spawn({
+        cmd: ["git", "remote", "set-url", "origin", backendRepo],
+        cwd: backendPath,
+        stdio: ["pipe", "inherit", "inherit"],
+      }).exited;
+      console.log("✅ Backend remote updated");
+
+      console.log("\n📝 Updating frontend remote...");
+      await spawn({
+        cmd: ["git", "remote", "set-url", "origin", frontendRepo],
+        cwd: frontendPath,
+        stdio: ["pipe", "inherit", "inherit"],
+      }).exited;
+      console.log("✅ Frontend remote updated");
+
+      // ✨ Step 4: Update root repository remote
+      console.log("\n📝 Updating root remote...");
+      await spawn({
+        cmd: ["git", "remote", "set-url", "origin", rootRepo],
+        cwd: projectPath,
+        stdio: ["pipe", "inherit", "inherit"],
+      }).exited;
+      console.log("✅ Root remote updated");
+
+      // ✨ Step 5: Stage and commit all changes in root
+      console.log("\n💾 Staging changes in root...");
+      await spawn({
+        cmd: ["git", "add", ".gitmodules"],
         cwd: projectPath,
         stdio: ["pipe", "inherit", "inherit"],
       }).exited;
 
-      // Update root repository
-      console.log("📝 Updating root repository...");
-      await spawn({
-        cmd: ["git", "remote", "remove", "origin"],
-        cwd: projectPath,
-      }).exited;
-
-      await spawn({
-        cmd: ["git", "remote", "add", "origin", rootRepo],
-        cwd: projectPath,
-      }).exited;
-
-      // Stage and commit all changes
       console.log("💾 Committing changes...");
-      await spawn({
-        cmd: ["git", "add", ".gitmodules"],
-        cwd: projectPath,
-      }).exited;
-
-      await spawn({
+      const commitResult = await spawn({
         cmd: [
           "git",
           "commit",
           "-m",
-          "Update repository remotes and submodule URLs",
+          "Update submodule URLs to new repositories",
         ],
         cwd: projectPath,
+        stdio: ["pipe", "inherit", "inherit"],
       }).exited;
 
-      // Push submodules first
-      console.log("📤 Pushing submodules...");
+      if (commitResult === 0) {
+        console.log("✅ Changes committed");
+      } else {
+        console.log("ℹ️  No changes to commit (or commit failed)");
+      }
 
-      await spawn({
+      // Push submodules first
+      console.log("\n📤 Pushing backend...");
+      const backendPush = await spawn({
         cmd: ["git", "push", "-u", "origin", "main"],
         cwd: backendPath,
         stdio: ["pipe", "inherit", "inherit"],
       }).exited;
 
-      await spawn({
+      if (backendPush === 0) {
+        console.log("✅ Backend pushed successfully");
+      } else {
+        console.log("⚠️  Backend push had issues (might be up-to-date)");
+      }
+
+      console.log("\n📤 Pushing frontend...");
+      const frontendPush = await spawn({
         cmd: ["git", "push", "-u", "origin", "main"],
         cwd: frontendPath,
         stdio: ["pipe", "inherit", "inherit"],
       }).exited;
 
+      if (frontendPush === 0) {
+        console.log("✅ Frontend pushed successfully");
+      } else {
+        console.log("⚠️  Frontend push had issues (might be up-to-date)");
+      }
+
       // Push root repository
-      console.log("📤 Pushing root repository...");
-      await spawn({
+      console.log("\n📤 Pushing root repository...");
+      const rootPush = await spawn({
         cmd: ["git", "push", "-u", "origin", "main"],
         cwd: projectPath,
         stdio: ["pipe", "inherit", "inherit"],
       }).exited;
+
+      if (rootPush === 0) {
+        console.log("✅ Root pushed successfully");
+      } else {
+        console.log("⚠️  Root push had issues (might be up-to-date)");
+      }
 
       console.log("\n✅ All repositories updated successfully!\n");
       console.log("🔗 Your project repositories:");
